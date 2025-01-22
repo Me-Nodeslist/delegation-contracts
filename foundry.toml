@@ -1,0 +1,17 @@
+[profile.default]
+ffi = true
+ast = true
+build_info = true
+extra_output = ["storageLayout"]
+optimizer = true
+optimizer_runs = 999999
+
+solc_version = "0.8.22"
+
+allow_unused_prank = true
+
+fs_permissions = [{ access = "read-write", path = "./"}]
+
+[rpc_endpoints]
+memo-dev = ""
+memo-product = ""

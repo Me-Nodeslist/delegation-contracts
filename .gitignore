@@ -1,0 +1,16 @@
+.vscode
+.DS_Store
+abi
+
+node_modules
+
+# Artifacts and Cache
+dist
+artifacts
+forge-artifacts
+cache
+broadcast
+out
+
+# Testing State
+.testdata
