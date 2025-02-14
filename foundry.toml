@@ -7,6 +7,7 @@ optimizer = true
 optimizer_runs = 999999
 
 solc_version = "0.8.22"
+evm_version = "shanghai"
 
 allow_unused_prank = true
 
@@ -15,3 +16,4 @@ fs_permissions = [{ access = "read-write", path = "./"}]
 [rpc_endpoints]
 memo-dev = ""
 memo-product = ""
+memo-test = ""
