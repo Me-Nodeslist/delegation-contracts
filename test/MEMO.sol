@@ -9,6 +9,6 @@ contract MEMO is
 {
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor(string memory name, string memory symbol) ERC20(name, symbol) {
-        _mint(msg.sender, 1e10);
+        _mint(msg.sender, 1e20);
     }
 }

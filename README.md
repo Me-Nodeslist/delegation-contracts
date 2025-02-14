@@ -19,7 +19,6 @@ forge install foundry-rs/forge-std --no-commit
 ### test
 
 ```sh
-forge cache clean
 forge clean
 forge test
 ```
@@ -27,7 +26,6 @@ forge test
 ### compile
 
 ```sh
-forge cache clean
 forge clean
 forge build
 ```

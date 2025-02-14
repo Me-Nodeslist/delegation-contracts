@@ -62,6 +62,7 @@ contract DelMEMO is
 
     /**
      * @notice Deposit some MEMO tokens, and will mint equivalent delMEMO tokens to receiver
+     * @dev Should 'approve' this contract same amount before 'mint'
      * @param receiver Receive the mined delMEMO tokens
      * @param amount Number of delMEMO tokens mined 
      */
