@@ -23,7 +23,7 @@ contract Delegation is
 
     uint8 public maxCommissionRate;
     /// @notice Indicates how long it takes for the node to modify the rate again
-    uint8 public commissionRateModifyTimeLimit;
+    uint32 public commissionRateModifyTimeLimit;
     /// @notice How many licenses a node can delegate
     uint16 public maxDelegationAmount;
     uint32 public nodeIndex;
@@ -53,7 +53,7 @@ contract Delegation is
         address _licenseNFT,
         address _settlement,
         uint8 _maxCommissionRate,
-        uint8 _commissionRateModifyTimeLimit,
+        uint32 _commissionRateModifyTimeLimit,
         uint16 _maxDelegationAmount
     ) public initializer {
         __Ownable_init(initialOwner);
@@ -221,7 +221,7 @@ contract Delegation is
         maxCommissionRate = value;
     }
 
-    function setCommissionRateModifyTimeLimit(uint8 value) external onlyOwner {
+    function setCommissionRateModifyTimeLimit(uint32 value) external onlyOwner {
         commissionRateModifyTimeLimit = value;
     }
 

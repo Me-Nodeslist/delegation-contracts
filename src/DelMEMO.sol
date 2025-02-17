@@ -5,6 +5,7 @@ import "./interfaces/IDelMemo.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
@@ -13,9 +14,12 @@ contract DelMEMO is
     Initializable,
     ERC20Upgradeable,
     OwnableUpgradeable,
+    AccessControlUpgradeable,
     UUPSUpgradeable
 {
     string public constant version = "0.1.0";
+
+    bytes32 public constant TRANSFER_ROLE = keccak256("TRANSFER_ROLE");
 
     uint256 public serviceFee;
 
@@ -45,6 +49,8 @@ contract DelMEMO is
         __ERC20_init(name, symbol);
         __Ownable_init(initialOwner);
         __UUPSUpgradeable_init();
+
+        _grantRole(DEFAULT_ADMIN_ROLE, initialOwner);
 
         memoToken = _memoToken;
         foundation = _foundation;
@@ -131,10 +137,15 @@ contract DelMEMO is
         emit Claim(_redeemID, redeemInfo.claimAmount);
     }
 
+    /**
+     * @dev Should grant 'TRANSFER_ROLE' to 'settlement' contract
+     * @param to Transfer to which account
+     * @param value The number of tokens
+     */
     function transfer(
         address to,
         uint256 value
-    ) public override onlyOwner returns (bool) {
+    ) public override onlyRole(TRANSFER_ROLE) returns (bool) {
         return super.transfer(to, value);
     }
 
@@ -142,7 +153,7 @@ contract DelMEMO is
         address from,
         address to,
         uint256 value
-    ) public override onlyOwner returns (bool) {
+    ) public override onlyRole(TRANSFER_ROLE) returns (bool) {
         return super.transferFrom(from, to, value);
     }
 

@@ -1,22 +1,23 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.19;
 
-import "./interfaces/ISettlement.sol";
-import "./interfaces/IDelMemo.sol";
+import "../src/interfaces/ISettlement.sol";
+import "../src/interfaces/IDelMemo.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-//import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-contract Settlement is
+/// @custom:oz-upgrades-from Settlement
+contract Settlement2 is
     ISettlement,
     Initializable,
-    //OwnableUpgradeable,
+    OwnableUpgradeable,
     AccessControlUpgradeable,
     UUPSUpgradeable
 {
-    string public constant version = "0.1.0";
+    string public constant version = "0.1.1";
 
     bytes32 public constant DELEGATE_ROLE = keccak256("DELEGATE_ROLE");
 
@@ -35,10 +36,9 @@ contract Settlement is
         address initialOwner,
         address _delMemo,
         uint256 _startTime
-    ) public initializer {
-        //__Ownable_init(initialOwner);
+    ) public reinitializer(2) {
+        __Ownable_init(initialOwner);
         __UUPSUpgradeable_init();
-        _grantRole(DEFAULT_ADMIN_ROLE, initialOwner);
 
         delMemo = _delMemo;
         startTime = _startTime;
@@ -46,24 +46,24 @@ contract Settlement is
 
     function _authorizeUpgrade(
         address newImplementation
-    ) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
+    ) internal override onlyOwner {}
 
     /**
-     * @dev Called by 'Delegation' contract, should grant 'DELEGATE_ROLE' to 'Delegation' contract.
+     * @dev Called by 'Delegation' contract, should grant 'DELEGATE_ROLE' to 'Delegation' contract 
      * @param receiver Who receive the withdrawal reward
      * @param amount The number of reward
      */
     function rewardWithdraw(
         address receiver,
         uint256 amount
-    ) external onlyRole(DELEGATE_ROLE) {
+    ) external {
         IERC20(delMemo).transfer(receiver, amount);
         emit RewardWithdraw(receiver, amount);
     }
 
-    function foundationWithdraw() external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function foundationWithdraw() external onlyOwner {
         uint256 bal = IERC20(delMemo).balanceOf(address(this));
-        IERC20(delMemo).transfer(IDelMemo(delMemo).foundation(), bal);
+        IERC20(delMemo).transfer(msg.sender, bal);
         emit FoundationWithdraw(msg.sender, bal);
     }
 
@@ -89,7 +89,7 @@ contract Settlement is
         } else if (date <= 1440) {
             return 20601e18;
         } else {
-            return 0;
+            return 111;
         }
     }
 }

@@ -88,7 +88,7 @@ interface IDelegation {
 
     function setMaxCommissionRate(uint8 value) external;
 
-    function setCommissionRateModifyTimeLimit(uint8 value) external;
+    function setCommissionRateModifyTimeLimit(uint32 value) external;
 
     function setMaxDelegationAmount(uint16 value) external;
 
@@ -96,7 +96,7 @@ interface IDelegation {
     function licenseNFT() external view returns(address);
     function settlement() external view returns(address);
     function maxCommissionRate() external view returns(uint8);
-    function commissionRateModifyTimeLimit() external view returns(uint8);
+    function commissionRateModifyTimeLimit() external view returns(uint32);
     function maxDelegationAmount() external view returns(uint16);
     function nodeIndex() external view returns(uint32);
     function getNodeInfo(address node) external view returns (NodeInfo memory);
