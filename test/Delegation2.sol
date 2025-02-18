@@ -1,20 +1,21 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.19;
 
-import "./interfaces/IDelegation.sol";
-import "./interfaces/ISettlement.sol";
+import "../src/interfaces/IDelegation.sol";
+import "../src/interfaces/ISettlement.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-contract Delegation is
+/// @custom:oz-upgrades-from Delegation
+contract Delegation2 is
     IDelegation,
     Initializable,
     OwnableUpgradeable,
     UUPSUpgradeable
 {
-    string public constant version = "0.1.0";
+    string public constant version = "0.1.1";
 
     /// @notice LicenceNFT contract address
     address public licenseNFT;
@@ -51,20 +52,17 @@ contract Delegation is
     function initialize(
         address initialOwner,
         address _licenseNFT,
-        address _settlement,
-        uint8 _maxCommissionRate,
-        uint32 _commissionRateModifyTimeLimit,
-        uint16 _maxDelegationAmount
-    ) public initializer {
+        address _settlement
+    ) public reinitializer(2) {
         __Ownable_init(initialOwner);
         __UUPSUpgradeable_init();
 
         licenseNFT = _licenseNFT;
         settlement = _settlement;
 
-        maxCommissionRate = _maxCommissionRate;
-        commissionRateModifyTimeLimit = _commissionRateModifyTimeLimit;
-        maxDelegationAmount = _maxDelegationAmount;
+        maxCommissionRate = 50;
+        commissionRateModifyTimeLimit = 100;
+        maxDelegationAmount = 100;
     }
 
     function _authorizeUpgrade(
@@ -80,7 +78,7 @@ contract Delegation is
     function nodeRegister(
         uint8 commissionRate,
         address recipient,
-        uint256[] memory tokenIDs
+        uint256[] calldata tokenIDs
     ) external {
         require(commissionRate <= maxCommissionRate, "Rate too large");
         nodeIndex++;
@@ -102,7 +100,7 @@ contract Delegation is
         emit NodeRegister(msg.sender, recipient, commissionRate);
     }
 
-    function delegate(uint256[] memory tokenIDs, address to) public {
+    function delegate(uint256[] calldata tokenIDs, address to) public {
         require(tokenIDs.length > 0, "No license");
         for (uint8 i = 0; i < tokenIDs.length; i++) {
             _delegate(tokenIDs[i], to);

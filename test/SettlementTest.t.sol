@@ -15,6 +15,7 @@ import {Upgrades} from "openzeppelin-foundry-upgrades/Upgrades.sol";
 
 contract SettlementTest is Test {
     DelMEMO delMemo;
+    address _implementation_delMemo;
     MEMO token;
 
     address owner;
@@ -36,11 +37,13 @@ contract SettlementTest is Test {
 
     function setUp() public {
         DelMEMO implementation = new DelMEMO();
+        _implementation_delMemo = address(implementation);
         owner = msg.sender;
         vm.prank(owner);
         token = new MEMO("MEMO", "M");
         memoToken = address(token);
         foundation = vm.addr(2);
+
         proxy = new ERC1967Proxy(
             address(implementation),
             abi.encodeCall(
@@ -56,12 +59,14 @@ contract SettlementTest is Test {
         proxy = new ERC1967Proxy(address(implementation_settle), abi.encodeCall(implementation_settle.initialize, (owner, address(delMemo), startTime)));
         settlement = Settlement(address(proxy));
 
+        console2.log("Owner address: ", owner);
+        console2.log("Has admin role(settlement)? ", settlement.hasRole(settlement.DEFAULT_ADMIN_ROLE(), owner));
+        console2.log("Has admin role(delMemo)? ", delMemo.hasRole(delMemo.DEFAULT_ADMIN_ROLE(), owner));
+        console2.log("delMemo implementation: ", _implementation_delMemo);
+        console2.log("settlement implementation: ", _implementation);
+
         emit log_address(owner);
-        emit log_address(memoToken);
-        emit log_address(foundation);
         emit log_address(address(delMemo));
-        emit log_address(_implementation);
-        emit log_address(address(proxy));
         emit log_address(address(settlement));
     }
 
@@ -69,55 +74,58 @@ contract SettlementTest is Test {
         vm.prank(owner);
         assertEq(settlement.startTime(), startTime);
         assertEq(settlement.delMemo(), address(delMemo));
+        assertEq(settlement.hasRole(settlement.DEFAULT_ADMIN_ROLE(), owner), true);
+        assertEq(delMemo.hasRole(delMemo.DEFAULT_ADMIN_ROLE(), owner), true);
     }
 
     function testGrantRole() public {
-        vm.prank(owner);
         // deploy licenseNFT contract
         LicenseNFT licenseNFT = new LicenseNFT();
         proxy = new ERC1967Proxy(address(licenseNFT), abi.encodeCall(licenseNFT.initialize, (owner, "License", "L", 100 days, 100 days, owner)));
         licenseNFT = LicenseNFT(address(proxy));
+
         // deploy delegation contract
-        vm.prank(owner);
         Delegation delegation = new Delegation();
         proxy = new ERC1967Proxy(address(delegation), abi.encodeCall(delegation.initialize, (owner, address(licenseNFT), address(settlement), 30, 86400*3, 1000)));
         delegation = Delegation(address(proxy));
+
         // grantRole
+        bytes32 role = settlement.DELEGATE_ROLE();
         vm.prank(owner);
-        settlement.grantRole(settlement.DELEGATE_ROLE(), address(delegation));
+        settlement.grantRole(role, address(delegation));
     }
 
     function testRewardWithdraw() public {
-        vm.prank(owner);
         // deploy licenseNFT contract
+        vm.startPrank(owner);
         LicenseNFT licenseNFT = new LicenseNFT();
         proxy = new ERC1967Proxy(address(licenseNFT), abi.encodeCall(licenseNFT.initialize, (owner, "License", "L", 100 days, 100 days, owner)));
         licenseNFT = LicenseNFT(address(proxy));
 
         // deploy delegation contract
-        vm.prank(owner);
         Delegation delegation = new Delegation();
         proxy = new ERC1967Proxy(address(delegation), abi.encodeCall(delegation.initialize, (owner, address(licenseNFT), address(settlement), 30, 86400*3, 1000)));
         delegation = Delegation(address(proxy));
 
         // grantRole
-        vm.prank(owner);
-        settlement.grantRole(settlement.DELEGATE_ROLE(), address(delegation));
+        bytes32 role = settlement.DELEGATE_ROLE();
+        //vm.prank(owner);
+        settlement.grantRole(role, address(delegation));
 
         // transfer delMemo to settlement
-        vm.prank(owner);
         token.approve(address(delMemo), mintValue);
         uint256 bal = token.balanceOf(owner);
-        vm.prank(owner);
         delMemo.mint(address(settlement), mintValue);
         uint256 balAfterMint = token.balanceOf(owner);
         assertEq(balAfterMint, bal - mintValue);
 
         // granRole
-        vm.prank(owner);
-        delMemo.grantRole(delMemo.TRANSFER_ROLE(), address(settlement));
+        role = delMemo.TRANSFER_ROLE();
+        //vm.prank(owner);
+        delMemo.grantRole(role, address(settlement));
 
         // test rewardWithdraw()
+        vm.stopPrank();
         vm.prank(address(delegation));
         settlement.rewardWithdraw(tester, mintValue);
         uint256 delMemoBalance = delMemo.balanceOf(tester);
@@ -125,21 +133,25 @@ contract SettlementTest is Test {
     }
 
     function testFoundationWithdraw() public {
+        vm.startPrank(owner);
         // transfer delMemo to settlement
-        vm.prank(owner);
         token.approve(address(delMemo), mintValue);
         uint256 bal = token.balanceOf(owner);
-        vm.prank(owner);
+        //vm.prank(owner);
         delMemo.mint(address(settlement), mintValue);
         uint256 balAfterMint = token.balanceOf(owner);
         assertEq(balAfterMint, bal - mintValue);
         assertEq(delMemo.balanceOf(address(settlement)), mintValue);
 
+        console2.log("msg.sender: %s", msg.sender);
+        console2.log("delMemo: %s", address(delMemo));
+        console2.log("settlement: %s", address(settlement));
         // granRole
-        vm.prank(owner);
         emit log_address(msg.sender);
         emit log_address(owner);
-        delMemo.grantRole(delMemo.TRANSFER_ROLE(), address(settlement));
+        bytes32 role = delMemo.TRANSFER_ROLE();
+        //vm.prank(owner);
+        delMemo.grantRole(role, address(settlement));
 
         // test foundationWithdraw()
         //vm.prank(owner);
