@@ -91,8 +91,8 @@ contract Delegation is
         nodeInfo.commissionRateLastModifyAt = block.timestamp;
         nodeInfo.recipient = recipient;
 
-        if (tokenIDs.length > 0) {
-            delegate(tokenIDs, msg.sender);
+        for (uint8 i = 0; i < tokenIDs.length; i++) {
+            _delegate(tokenIDs[i], msg.sender);
         }
 
         if(delegationAmount[msg.sender] > 0){
@@ -106,6 +106,10 @@ contract Delegation is
         require(tokenIDs.length > 0, "No license");
         for (uint8 i = 0; i < tokenIDs.length; i++) {
             _delegate(tokenIDs[i], to);
+        }
+
+        if(delegationAmount[to] > 0 && nodeInfos[to].id > 0){
+            nodeInfos[to].active = true;
         }
     }
 
@@ -149,6 +153,9 @@ contract Delegation is
             nodeInfos[old].active = false;
         }
         delegationAmount[to]++;
+        if(nodeInfos[to].id > 0){
+            nodeInfos[to].active = true;
+        }
 
         rewardInfos[tokenID].totalRewards +=
             nodeInfos[old].delegationRewards -
@@ -158,75 +165,12 @@ contract Delegation is
         emit Redelegate(tokenID, to);
     }
 
-    function modifyCommissionRate(uint8 commissionRate) external {
-        _modifyCommissionRate(msg.sender, commissionRate);
-    }
-
-    /**
-     * @notice Node claims its reward, the reward will be transferred to the recipient
-     */
-    function nodeClaim() external {
-        NodeInfo storage nodeInfo = nodeInfos[msg.sender];
-        require(nodeInfo.id > 0, "Node not exist");
-
-        confirmNodeReward(msg.sender);
-
-        require(
-            nodeInfo.selfTotalRewards > nodeInfo.selfClaimedRewards,
-            "No reward"
-        );
-        uint256 rewards = nodeInfo.selfTotalRewards -
-            nodeInfo.selfClaimedRewards;
-        nodeInfo.selfClaimedRewards = nodeInfo.selfTotalRewards;
-
-        ISettlement(settlement).rewardWithdraw(nodeInfo.recipient, rewards);
-        emit NodeWithdraw(msg.sender, rewards);
-    }
-
-    /**
-     * @notice License owner who delegated to a node claims its reward.
-     * @param tokenID The license nft id
-     */
-    function delegationClaim(uint256 tokenID) external onlyLicenseOwner(tokenID) {
-        RewardInfo storage rewardInfo = rewardInfos[tokenID];
-
-        if (delegation[tokenID] != address(0)) {
-            rewardInfo.totalRewards +=
-                nodeInfos[delegation[tokenID]].delegationRewards -
-                rewardInfo.initialRewards;
-            rewardInfo.initialRewards = nodeInfos[delegation[tokenID]]
-                .delegationRewards;
-        }
-
-        require(
-            rewardInfo.totalRewards > rewardInfo.claimedRewards,
-            "No reward"
-        );
-        uint256 reward = rewardInfo.totalRewards - rewardInfo.claimedRewards;
-        rewardInfo.claimedRewards = rewardInfo.totalRewards;
-        ISettlement(settlement).rewardWithdraw(msg.sender, reward);
-
-        emit ClaimReward(msg.sender, tokenID, reward);
-    }
-
     /**
      * @notice Node sends 'updateNodeDailyDelegations()' tx daily to initialize its delegation
      */
     function updateNodeDailyDelegations(address node) external {
         require(nodeInfos[node].active, "Unactive");
         _updateNodeDailyDelegations(node);
-    }
-
-    function setMaxCommissionRate(uint8 value) external onlyOwner {
-        maxCommissionRate = value;
-    }
-
-    function setCommissionRateModifyTimeLimit(uint32 value) external onlyOwner {
-        commissionRateModifyTimeLimit = value;
-    }
-
-    function setMaxDelegationAmount(uint16 value) external onlyOwner {
-        maxDelegationAmount = value;
     }
 
     function confirmNodeReward(address node) public {
@@ -258,6 +202,71 @@ contract Delegation is
             nodeInfo.selfTotalRewards,
             nodeInfo.delegationRewards
         );
+    }
+
+    /**
+     * @notice Node claims its reward, the reward will be transferred to the recipient
+     */
+    function nodeClaim() external {
+        NodeInfo storage nodeInfo = nodeInfos[msg.sender];
+        require(nodeInfo.id > 0, "Node not exist");
+
+        confirmNodeReward(msg.sender);
+
+        require(
+            nodeInfo.selfTotalRewards > nodeInfo.selfClaimedRewards,
+            "No reward"
+        );
+        uint256 rewards = nodeInfo.selfTotalRewards -
+            nodeInfo.selfClaimedRewards;
+        nodeInfo.selfClaimedRewards = nodeInfo.selfTotalRewards;
+
+        ISettlement(settlement).rewardWithdraw(nodeInfo.recipient, rewards);
+        emit NodeWithdraw(msg.sender, rewards);
+    }
+
+    /**
+     * @notice License owner who delegated to a node claims its reward.
+     * @param tokenID The license nft id
+     */
+    function delegationClaim(uint256 tokenID) external onlyLicenseOwner(tokenID) {
+        RewardInfo storage rewardInfo = rewardInfos[tokenID];
+
+        confirmNodeReward(delegation[tokenID]);
+
+        if (delegation[tokenID] != address(0)) {
+            rewardInfo.totalRewards +=
+                nodeInfos[delegation[tokenID]].delegationRewards -
+                rewardInfo.initialRewards;
+            rewardInfo.initialRewards = nodeInfos[delegation[tokenID]]
+                .delegationRewards;
+        }
+
+        require(
+            rewardInfo.totalRewards > rewardInfo.claimedRewards,
+            "No reward"
+        );
+        uint256 reward = rewardInfo.totalRewards - rewardInfo.claimedRewards;
+        rewardInfo.claimedRewards = rewardInfo.totalRewards;
+        ISettlement(settlement).rewardWithdraw(msg.sender, reward);
+
+        emit ClaimReward(msg.sender, tokenID, reward);
+    }
+
+    function modifyCommissionRate(uint8 commissionRate) external {
+        _modifyCommissionRate(msg.sender, commissionRate);
+    }
+
+    function setMaxCommissionRate(uint8 value) external onlyOwner {
+        maxCommissionRate = value;
+    }
+
+    function setCommissionRateModifyTimeLimit(uint32 value) external onlyOwner {
+        commissionRateModifyTimeLimit = value;
+    }
+
+    function setMaxDelegationAmount(uint16 value) external onlyOwner {
+        maxDelegationAmount = value;
     }
 
     function _delegate(
