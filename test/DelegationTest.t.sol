@@ -118,7 +118,7 @@ contract DelegationTest is Test {
         uint256 balAfterMint = token.balanceOf(owner);
         assertEq(balAfterMint, bal - mintValue);
 
-        // granRole
+        // grantRole
         role = delMemo.TRANSFER_ROLE();
         //vm.prank(owner);
         delMemo.grantRole(role, address(settlement));

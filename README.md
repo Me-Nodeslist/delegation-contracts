@@ -36,7 +36,7 @@ forge build
 forge cache clean
 forge clean
 
-DEPLOYMENT_OUTFILE=script/deployment.json VALIDATOR=$VALIDATOR_ADDRESS forge script script/Deploy.s.sol:Deploy --private-key $PRIVATE_KEY --broadcast --rpc-url $RPC_URL --slow --legacy --optimize
+DEPLOYMENT_OUTFILE=script/deployment-dev.json MEMO_TOKEN=$MEMO_TOKEN forge script script/Deploy.s.sol:Deploy --private-key $PRIVATE_KEY --broadcast --rpc-url $RPC_URL --slow --legacy --optimize
 ```
 
 The deployed contract addresses will be saved at $DEPLOYMENT_OUTFILE.

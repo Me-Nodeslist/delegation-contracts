@@ -7,7 +7,7 @@ optimizer = true
 optimizer_runs = 999999
 
 solc_version = "0.8.22"
-evm_version = "shanghai"
+evm_version = "london"
 
 allow_unused_prank = true
 
