@@ -229,7 +229,7 @@ contract Delegation is
      * @notice License owner who delegated to a node claims its reward.
      * @param tokenID The license nft id
      */
-    function delegationClaim(uint256 tokenID) external onlyLicenseOwner(tokenID) {
+    function delegationClaim(uint256 tokenID) public onlyLicenseOwner(tokenID) {
         RewardInfo storage rewardInfo = rewardInfos[tokenID];
 
         confirmNodeReward(delegation[tokenID]);
@@ -251,6 +251,12 @@ contract Delegation is
         ISettlement(settlement).rewardWithdraw(msg.sender, reward);
 
         emit ClaimReward(msg.sender, tokenID, reward);
+    }
+
+    function delegationBatchClaim(uint256[] memory tokenIDs) external {
+        for(uint8 i=0; i<tokenIDs.length; i++){
+            delegationClaim(tokenIDs[i]);
+        }
     }
 
     function modifyCommissionRate(uint8 commissionRate) external {

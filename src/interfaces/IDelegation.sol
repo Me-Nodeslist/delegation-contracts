@@ -82,6 +82,8 @@ interface IDelegation {
 
     function delegationClaim(uint256 tokenID) external;
 
+    function delegationBatchClaim(uint256[] memory tokenIDs) external;
+
     function updateNodeDailyDelegations(address node) external;
 
     function confirmNodeReward(address node) external;
