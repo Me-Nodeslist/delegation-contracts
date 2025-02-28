@@ -173,6 +173,9 @@ contract Delegation is
         _updateNodeDailyDelegations(node);
     }
 
+    /**
+     * @notice Node sends 'confirmNodeReward()' tx daily to calculate its reward
+     */
     function confirmNodeReward(address node) public {
         uint32 today = _todayIndex();
         NodeInfo storage nodeInfo = nodeInfos[node];
