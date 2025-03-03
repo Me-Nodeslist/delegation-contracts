@@ -207,6 +207,8 @@ contract Delegation2 is
         emit ClaimReward(msg.sender, tokenID, reward);
     }
 
+    function delegationBatchClaim(uint256[] memory tokenIDs) external {}
+
     /**
      * @notice Node sends 'updateNodeDailyDelegations()' tx daily to initialize its delegation
      */
