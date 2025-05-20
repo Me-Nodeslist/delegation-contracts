@@ -2,8 +2,6 @@
 
 This repository includes the contracts of node-delegation product.
 
-
-
 ## test & compile & deploy
 
 First, install [foundryup](https://book.getfoundry.sh/getting-started/installation).
@@ -52,6 +50,20 @@ DEPLOYMENT_OUTFILE=script/deployment-dev.json DELMEMO_PROXY=$DELMEMO_PROXY forge
 ```
 
 The new implementation contract addresses will be saved at $DEPLOYMENT_OUTFILE.
+
+## abi
+
+solc_version = "0.8.22"
+
+```sh
+solc --abi --base-path . --include-path lib/ @openzeppelin/contracts/=lib/openzeppelin-contracts-upgradeable/lib/openzeppelin-contracts/contracts/ @openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/ src/Delegation.sol -o abi/ --overwrite
+
+solc --abi --base-path . --include-path lib/ @openzeppelin/contracts/=lib/openzeppelin-contracts-upgradeable/lib/openzeppelin-contracts/contracts/ @openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/ src/DelMEMO.sol -o abi/ --overwrite
+
+solc --abi --base-path . --include-path lib/ @openzeppelin/contracts/=lib/openzeppelin-contracts-upgradeable/lib/openzeppelin-contracts/contracts/ @openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/ src/LicenseNFT.sol -o abi/ --overwrite
+
+solc --abi --base-path . --include-path lib/ @openzeppelin/contracts/=lib/openzeppelin-contracts-upgradeable/lib/openzeppelin-contracts/contracts/ @openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/ src/Settlement.sol -o abi/ --overwrite
+```
 
 ## contract address
 
